@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory & Sales Dashboard</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div id="app">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2 class="logo">Inventory<span>Pro</span></h2>
+
+            <nav class="menu">
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">Products</a>
+                <a href="#">Sales</a>
+                <a href="#">Reports</a>
+                <a href="#">Settings</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <header class="topbar">
+                <h1>Dashboard Overview</h1>
+            </header>
+        <!-- ---------- MODAL ADD PRODUCT ---------- -->
+<div id="modal" class="modal hidden">
+    <div class="modal-content">
+
+        <h2>Add New Product</h2>
+
+        <label>Name:</label>
+        <input type="text" id="new-name" class="modal-input">
+
+        <label>Category:</label>
+        <input type="text" id="new-category" class="modal-input">
+
+        <label>Stock:</label>
+        <input type="number" id="new-stock" class="modal-input" min="0">
+
+        <label>Price:</label>
+        <input type="number" id="new-price" class="modal-input" min="0">
+
+        <div class="modal-buttons">
+            <button id="save-product" class="btn-save">Save</button>
+            <button id="close-modal" class="btn-cancel">Cancel</button>
+        </div>
+
+    </div>
+</div>
+
+
+            <section class="cards">
+                <div class="card">Total Products: <span id="total-products">0</span></div>
+                <div class="card">Total Sales: <span id="total-sales">$0</span></div>
+                <div class="card">Low Stock Items: <span id="low-stock">0</span></div>
+                <div class="card">Monthly Revenue: <span id="monthly-revenue">$0</span></div>
+            </section>
+
+<div class="table-header">
+    <h2>Product List</h2>
+
+    <input 
+        type="text" 
+        id="search-input" 
+        placeholder="Search products..."
+        class="search-bar"
+    >
+</div>
+
+<select id="category-filter" class="category-select">
+    <option value="all">All Categories</option>
+</select>
+
+<button id="export-pdf-btn" class="btn-add" style="margin-top:10px;">
+    Export to PDF
+</button>
+
+<button id="export-excel-btn" class="btn-add" style="margin-top:10px;">
+    Export to Excel
+</button>
+
+
+<button id="add-product-btn" class="btn-add">+ Add Product</button>
+
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-table-body">
+                        <!-- JS will insert rows here -->
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- JS -->
+    <script src="app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>
