@@ -16,6 +16,7 @@ Reglas de trabajo para este repositorio.
 index.html    # Página del dashboard
 styles.css    # Estilos
 app.js        # Lógica: datos de ejemplo, búsqueda, filtro, modal, exportar PDF/Excel
+favicon.svg   # Ícono de la pestaña (caja de inventario)
 README.md
 CLAUDE.md
 .gitignore

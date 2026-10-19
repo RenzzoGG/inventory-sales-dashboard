@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Caja de inventario con los colores del dashboard -->
+  <rect width="32" height="32" rx="7" fill="#0d0f14"/>
+  <path d="M16 5 27 10.5v11L16 27 5 21.5v-11Z" fill="#4f7cff"/>
+  <path d="M5 10.5 16 16l11-5.5M16 16v11" fill="none" stroke="#0d0f14" stroke-width="2" stroke-linejoin="round"/>
+</svg>
