@@ -74,6 +74,40 @@
                     </article>
                 </section>
 
+                <section class="table-section panel chart-panel" aria-labelledby="chart-title">
+                    <div class="table-header">
+                        <div>
+                            <h2 id="chart-title">Daily Revenue</h2>
+                            <p class="chart-subtitle" id="chart-subtitle"></p>
+                        </div>
+                    </div>
+
+                    <!-- JS dibuja el SVG dentro de este contenedor -->
+                    <div class="chart" id="revenue-chart">
+                        <div class="chart-tooltip" id="chart-tooltip" aria-hidden="true" hidden></div>
+                    </div>
+
+                    <!-- Texto para lectores de pantalla -->
+                    <p id="chart-summary" class="visually-hidden"></p>
+                    <p id="chart-live" class="visually-hidden" aria-live="polite"></p>
+
+                    <details class="chart-table">
+                        <summary>View as table</summary>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Date</th>
+                                        <th scope="col" class="num">Orders</th>
+                                        <th scope="col" class="num">Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="chart-table-body"></tbody>
+                            </table>
+                        </div>
+                    </details>
+                </section>
+
                 <div class="panels">
                     <section class="table-section panel">
                         <div class="table-header">

@@ -63,6 +63,19 @@ function formatDate(date) {
     return dateFormatter.format(date);
 }
 
+// Montos cortos para el eje de la gráfica: $0, $500, $1.5K
+const compactCurrencyFormatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1
+});
+
+function formatCompactMoney(amount) {
+    return compactCurrencyFormatter.format(amount);
+}
+
 // Sin año: para listas de días recientes
 const shortDateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 
@@ -89,9 +102,25 @@ function getSaleTotal(sale) {
     return sale.qty * sale.unitPrice;
 }
 
+// Ventas de los últimos `days` días contando hoy (con 30: hoy y los 29 anteriores)
 function getRecentSales(days) {
     const since = daysAgo(days);
-    return sales.filter(sale => sale.date >= since);
+    return sales.filter(sale => sale.date > since);
+}
+
+function isSameDay(a, b) {
+    return a.toDateString() === b.toDateString();
+}
+
+// Ingresos por día, del más antiguo a hoy (incluye los días sin ventas)
+function getDailyRevenue(days) {
+    const result = [];
+    for (let offset = days - 1; offset >= 0; offset--) {
+        const date = daysAgo(offset);
+        const daySales = sales.filter(sale => isSameDay(sale.date, date));
+        result.push({ date, total: getRevenue(daySales), orders: daySales.length });
+    }
+    return result;
 }
 
 function isLowStock(product) {
@@ -251,6 +280,265 @@ function renderDashboardTables() {
             createCell(formatMoney(getSaleTotal(sale)), "num")
         ]));
     });
+}
+
+
+// ---------- GRÁFICA DE INGRESOS (SVG) ----------
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+const CHART_TICKS = 4;
+
+// Datos y medidas del último dibujo (los usa el tooltip)
+const chartState = { days: [], activeIndex: -1, geometry: null, width: 0 };
+
+function createSvgElement(tag, attributes) {
+    const element = document.createElementNS(SVG_NS, tag);
+    for (const [name, value] of Object.entries(attributes)) {
+        element.setAttribute(name, value);
+    }
+    return element;
+}
+
+// Máximo del eje redondeado para que las marcas sean números "limpios"
+// (pasos de 1, 1.5, 2, 2.5, 3, 4, 5, 6 u 8 × 10^n: la barra más alta llena casi todo el alto)
+function getNiceMax(value, ticks) {
+    if (value <= 0) return ticks * 100;
+    const rawStep = value / ticks;
+    const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+    const step = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].map(m => m * magnitude).find(s => s >= rawStep);
+    return Number((step * ticks).toPrecision(12));   // evita 0.6000000000000001
+}
+
+// Columna con esquinas superiores redondeadas y base recta
+function columnPath(x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height);
+    const bottom = y + height;
+    return `M${x},${bottom} V${y + r} Q${x},${y} ${x + r},${y} ` +
+        `H${x + width - r} Q${x + width},${y} ${x + width},${y + r} V${bottom} Z`;
+}
+
+function renderRevenueChart() {
+    const container = document.getElementById("revenue-chart");
+    const days = getDailyRevenue(REVENUE_WINDOW_DAYS);
+    chartState.days = days;
+
+    // Medidas según el ancho real (600 si aún no hay layout, p. ej. sección oculta)
+    const width = container.clientWidth || 600;
+    chartState.width = container.clientWidth;
+    const isCompact = width < 500;
+    const height = isCompact ? 180 : 220;
+    const margin = { top: 12, right: 8, bottom: 28, left: 48 };
+    const plotWidth = width - margin.left - margin.right;
+    const plotHeight = height - margin.top - margin.bottom;
+    const baseline = margin.top + plotHeight;
+    const maxValue = getNiceMax(Math.max(...days.map(d => d.total)), CHART_TICKS);
+    const band = plotWidth / days.length;
+    const barWidth = Math.max(2, Math.min(24, band - 2));
+    const yFor = value => baseline - (value / maxValue) * plotHeight;
+    chartState.geometry = { band, left: margin.left, yFor };
+
+    const svg = createSvgElement("svg", {
+        width,
+        height,
+        class: "chart-svg",
+        role: "img",
+        tabindex: "0",
+        "aria-labelledby": "chart-title",
+        "aria-describedby": "chart-summary"
+    });
+
+    // Líneas guía y etiquetas del eje Y
+    for (let i = 0; i <= CHART_TICKS; i++) {
+        const value = (maxValue / CHART_TICKS) * i;
+        const y = Math.round(yFor(value)) + 0.5;
+        svg.appendChild(createSvgElement("line", { x1: margin.left, x2: width - margin.right, y1: y, y2: y, class: "chart-grid" }));
+
+        const label = createSvgElement("text", { x: margin.left - 8, y, class: "chart-axis", "text-anchor": "end", "dominant-baseline": "middle" });
+        label.textContent = formatCompactMoney(value);
+        svg.appendChild(label);
+    }
+
+    // Etiquetas del eje X: hoy y cada 7 días hacia atrás (cada 10 en móvil)
+    const labelEvery = isCompact ? 10 : 7;
+    days.forEach((day, i) => {
+        const daysFromToday = days.length - 1 - i;
+        if (daysFromToday % labelEvery !== 0) return;
+        const isToday = daysFromToday === 0;
+        const label = createSvgElement("text", {
+            x: isToday ? width - margin.right : margin.left + band * (i + 0.5),
+            y: height - 8,
+            class: "chart-axis",
+            "text-anchor": isToday ? "end" : "middle"
+        });
+        label.textContent = isToday ? "Today" : formatShortDate(day.date);
+        svg.appendChild(label);
+    });
+
+    // Columnas (solo días con ventas) y áreas activas (todos los días)
+    days.forEach((day, i) => {
+        if (day.total > 0) {
+            const x = margin.left + band * i + (band - barWidth) / 2;
+            const y = yFor(day.total);
+            svg.appendChild(createSvgElement("path", {
+                d: columnPath(x, y, barWidth, baseline - y, 4),
+                class: "chart-bar",
+                "data-index": i
+            }));
+        }
+    });
+
+    days.forEach((day, i) => {
+        svg.appendChild(createSvgElement("rect", {
+            x: margin.left + band * i,
+            y: margin.top,
+            width: band,
+            height: plotHeight,
+            class: "chart-hit",
+            "data-index": i
+        }));
+    });
+
+    container.querySelector("svg")?.remove();
+    container.prepend(svg);
+
+    renderChartText(days);
+
+    // Si había un día activo (p. ej. al redimensionar), vuelve a mostrarlo
+    if (chartState.activeIndex >= 0) showChartTooltip(chartState.activeIndex);
+}
+
+// Subtítulo, resumen para lectores de pantalla y tabla "View as table"
+function renderChartText(days) {
+    const total = getRevenue(getRecentSales(REVENUE_WINDOW_DAYS));
+    const orders = days.reduce((acc, d) => acc + d.orders, 0);
+    const best = days.reduce((top, d) => (d.total > top.total ? d : top), days[0]);
+    const emptyDays = days.filter(d => d.total === 0).length;
+
+    document.getElementById("chart-subtitle").textContent =
+        `Last ${REVENUE_WINDOW_DAYS} days · ${formatMoney(total)} total`;
+
+    document.getElementById("chart-summary").textContent = total === 0
+        ? `No sales in the last ${REVENUE_WINDOW_DAYS} days.`
+        : `Revenue over the last ${REVENUE_WINDOW_DAYS} days totaled ${formatMoney(total)} from ${orders} orders. ` +
+          `Best day: ${formatDate(best.date)} with ${formatMoney(best.total)}. ` +
+          `${emptyDays} days had no sales. Use the left and right arrow keys to explore each day.`;
+
+    const tableBody = document.getElementById("chart-table-body");
+    tableBody.replaceChildren();
+    [...days].reverse().forEach(day => {
+        tableBody.appendChild(createRow([
+            createCell(formatDate(day.date), "nowrap"),
+            createCell(day.orders, "num"),
+            createCell(formatMoney(day.total), "num")
+        ]));
+    });
+}
+
+function describeDay(day) {
+    const orders = `${day.orders} ${day.orders === 1 ? "order" : "orders"}`;
+    return { value: formatMoney(day.total), detail: `${formatDate(day.date)} · ${orders}` };
+}
+
+function showChartTooltip(index) {
+    const day = chartState.days[index];
+    if (!day) return;
+    chartState.activeIndex = index;
+
+    const container = document.getElementById("revenue-chart");
+    const tooltip = document.getElementById("chart-tooltip");
+    const { value, detail } = describeDay(day);
+
+    const strong = document.createElement("strong");
+    strong.textContent = value;
+    const span = document.createElement("span");
+    span.textContent = detail;
+    tooltip.replaceChildren(strong, span);
+    tooltip.hidden = false;
+
+    // Resalta la columna y su área activa
+    container.querySelectorAll(".is-active").forEach(el => el.classList.remove("is-active"));
+    container.querySelectorAll(`[data-index="${index}"]`).forEach(el => el.classList.add("is-active"));
+
+    // Encima de la barra si cabe; si no, al lado (para no taparla)
+    const { band, left, yFor } = chartState.geometry;
+    const tipWidth = tooltip.offsetWidth;
+    const tipHeight = tooltip.offsetHeight;
+    const containerWidth = container.clientWidth;
+    const centerX = left + band * (index + 0.5);
+    const barTop = yFor(day.total);
+    const gap = 10;
+    let x;
+    let y;
+
+    if (barTop - tipHeight - gap >= 0) {
+        x = centerX - tipWidth / 2;
+        y = barTop - tipHeight - gap;
+    } else {
+        const rightSide = centerX + band / 2 + gap;
+        x = rightSide + tipWidth <= containerWidth ? rightSide : centerX - band / 2 - gap - tipWidth;
+        y = barTop;
+    }
+
+    // Nunca fuera del panel por los lados
+    x = Math.min(Math.max(x, 0), Math.max(containerWidth - tipWidth, 0));
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
+}
+
+function hideChartTooltip() {
+    chartState.activeIndex = -1;
+    document.getElementById("chart-tooltip").hidden = true;
+    document.querySelectorAll("#revenue-chart .is-active").forEach(el => el.classList.remove("is-active"));
+}
+
+function setupChartEvents() {
+    const container = document.getElementById("revenue-chart");
+
+    // pointer* cubre mouse, toque y lápiz
+    const handlePointer = event => {
+        const index = event.target.dataset ? event.target.dataset.index : undefined;
+        if (index !== undefined) showChartTooltip(Number(index));
+    };
+    container.addEventListener("pointermove", handlePointer);
+    container.addEventListener("pointerdown", handlePointer);
+    container.addEventListener("pointerleave", event => {
+        if (event.pointerType === "mouse") hideChartTooltip();
+    });
+
+    // En móvil: tocar fuera de la gráfica cierra el tooltip
+    document.addEventListener("pointerdown", event => {
+        if (!container.contains(event.target)) hideChartTooltip();
+    });
+
+    // Teclado: flechas recorren los días, Escape cierra
+    container.addEventListener("keydown", event => {
+        const last = chartState.days.length - 1;
+        const current = chartState.activeIndex;
+        let next = null;
+
+        if (event.key === "ArrowRight") next = current < 0 ? 0 : Math.min(current + 1, last);
+        if (event.key === "ArrowLeft") next = current < 0 ? last : Math.max(current - 1, 0);
+        if (event.key === "Home") next = 0;
+        if (event.key === "End") next = last;
+        if (event.key === "Escape") hideChartTooltip();
+        if (next === null) return;
+
+        event.preventDefault();
+        showChartTooltip(next);
+        const { value, detail } = describeDay(chartState.days[next]);
+        document.getElementById("chart-live").textContent = `${detail}: ${value}`;
+    });
+    container.addEventListener("focusout", hideChartTooltip);
+
+    // Redibuja cuando cambia el ancho (resize, rotar el móvil, mostrar el Dashboard)
+    if ("ResizeObserver" in window) {
+        let frame;
+        new ResizeObserver(() => {
+            if (container.clientWidth === chartState.width) return;
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(renderRevenueChart);
+        }).observe(container);
+    }
 }
 
 
@@ -614,6 +902,7 @@ function renderAll() {
     renderProducts();
     updateCards();
     renderDashboardTables();
+    renderRevenueChart();
     renderSales();
     renderReports();
 }
@@ -621,6 +910,7 @@ function renderAll() {
 
 document.addEventListener("DOMContentLoaded", () => {
     renderAll();
+    setupChartEvents();
     showView();
     window.addEventListener("hashchange", () => showView({ moveFocus: true }));
 

@@ -23,6 +23,11 @@
     --accent-strong: #3563e9;   /* Fondo de botones: contraste >= 4.5:1 con blanco */
     --accent-hover: #2a55d4;
 
+    --chart-bar: var(--accent);
+    --chart-bar-hover: #7b9dff;
+    --chart-grid: var(--border-color);
+    --chart-band-hover: rgba(255, 255, 255, 0.04);
+
     --warning: #ffb547;
     --warning-bg: rgba(255, 181, 71, 0.15);
     --danger: #ff6b6b;
@@ -497,6 +502,111 @@ select {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+}
+
+/* ---------- GRÁFICA DE INGRESOS ---------- */
+.chart-panel {
+    margin-bottom: 25px;
+}
+
+.chart-subtitle {
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.chart {
+    position: relative;
+}
+
+.chart-svg {
+    display: block;
+    overflow: visible;
+    touch-action: pan-y;    /* el scroll vertical sigue funcionando al tocar la gráfica */
+}
+
+.chart-svg:focus {
+    outline: none;
+}
+
+.chart-svg:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.chart-grid {
+    stroke: var(--chart-grid);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.chart-axis {
+    fill: var(--text-secondary);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.chart-bar {
+    fill: var(--chart-bar);
+    transition: fill 0.15s ease;
+}
+
+.chart-bar.is-active {
+    fill: var(--chart-bar-hover);
+}
+
+.chart-hit {
+    fill: transparent;
+    cursor: pointer;
+}
+
+.chart-hit.is-active {
+    fill: var(--chart-band-hover);
+}
+
+.chart-tooltip {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* display: flex anularía el atributo hidden */
+.chart-tooltip[hidden] {
+    display: none;
+}
+
+.chart-tooltip strong {
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.chart-table {
+    margin-top: 16px;
+}
+
+.chart-table summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.chart-table .table-wrapper {
+    max-height: 320px;
+    margin-top: 12px;
+    overflow-y: auto;
 }
 
 /* ---------- TOAST ---------- */
