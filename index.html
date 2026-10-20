@@ -4,16 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory & Sales Dashboard</title>
+    <meta name="description" content="Inventory and sales dashboard demo: product search and filters, sales metrics, and PDF/Excel export. Built with plain HTML, CSS and JavaScript.">
 
     <!-- Favicon -->
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- Scripts (defer: run after the HTML is parsed, in order) -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script defer src="app.js"></script>
 </head>
 
 <body>
-
     <div id="app">
 
         <!-- Sidebar -->
@@ -29,37 +39,11 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main content -->
         <main class="content">
             <header class="topbar">
                 <h1>Dashboard Overview</h1>
             </header>
-        <!-- ---------- MODAL ADD PRODUCT ---------- -->
-<div id="modal" class="modal hidden">
-    <div class="modal-content">
-
-        <h2>Add New Product</h2>
-
-        <label>Name:</label>
-        <input type="text" id="new-name" class="modal-input">
-
-        <label>Category:</label>
-        <input type="text" id="new-category" class="modal-input">
-
-        <label>Stock:</label>
-        <input type="number" id="new-stock" class="modal-input" min="0">
-
-        <label>Price:</label>
-        <input type="number" id="new-price" class="modal-input" min="0">
-
-        <div class="modal-buttons">
-            <button id="save-product" class="btn-save">Save</button>
-            <button id="close-modal" class="btn-cancel">Cancel</button>
-        </div>
-
-    </div>
-</div>
-
 
             <section class="cards">
                 <div class="card">Total Products: <span id="total-products">0</span></div>
@@ -68,54 +52,65 @@
                 <div class="card">Monthly Revenue: <span id="monthly-revenue">$0</span></div>
             </section>
 
-<div class="table-header">
-    <h2>Product List</h2>
+            <section class="table-section">
+                <div class="table-header">
+                    <h2>Product List</h2>
+                    <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
+                </div>
 
-    <input 
-        type="text" 
-        id="search-input" 
-        placeholder="Search products..."
-        class="search-bar"
-    >
-</div>
+                <div class="toolbar">
+                    <input type="search" id="search-input" class="search-bar" placeholder="Search products..." aria-label="Search products">
 
-<select id="category-filter" class="category-select">
-    <option value="all">All Categories</option>
-</select>
+                    <select id="category-filter" class="category-select" aria-label="Filter by category">
+                        <option value="all">All Categories</option>
+                    </select>
 
-<button id="export-pdf-btn" class="btn-add" style="margin-top:10px;">
-    Export to PDF
-</button>
-
-<button id="export-excel-btn" class="btn-add" style="margin-top:10px;">
-    Export to Excel
-</button>
-
-
-<button id="add-product-btn" class="btn-add">+ Add Product</button>
-
+                    <div class="toolbar-actions">
+                        <button id="export-pdf-btn" class="btn btn-secondary">Export to PDF</button>
+                        <button id="export-excel-btn" class="btn btn-secondary">Export to Excel</button>
+                    </div>
+                </div>
 
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Category</th>
-                            <th>Stock</th>
-                            <th>Price</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Price</th>
                         </tr>
                     </thead>
                     <tbody id="product-table-body">
-                        <!-- JS will insert rows here -->
+                        <!-- JS inserts rows here -->
                     </tbody>
                 </table>
-
+            </section>
         </main>
 
     </div>
 
-    <!-- JS -->
-    <script src="app.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Modal: add product -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Add New Product</h2>
+
+            <label for="new-name">Name</label>
+            <input type="text" id="new-name" class="modal-input">
+
+            <label for="new-category">Category</label>
+            <input type="text" id="new-category" class="modal-input">
+
+            <label for="new-stock">Stock</label>
+            <input type="number" id="new-stock" class="modal-input" min="0">
+
+            <label for="new-price">Price</label>
+            <input type="number" id="new-price" class="modal-input" min="0">
+
+            <div class="modal-buttons">
+                <button id="close-modal" class="btn btn-secondary">Cancel</button>
+                <button id="save-product" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
