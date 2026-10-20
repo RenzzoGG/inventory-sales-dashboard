@@ -23,6 +23,10 @@
     --accent-strong: #3563e9;   /* Fondo de botones: contraste >= 4.5:1 con blanco */
     --accent-hover: #2a55d4;
 
+    --warning: #ffb547;
+    --warning-bg: rgba(255, 181, 71, 0.15);
+    --danger: #ff6b6b;
+
     --scrollbar-thumb: #2a2f3f;
     --scrollbar-thumb-hover: #3a4055;
 
@@ -185,6 +189,38 @@ select {
     background: var(--bg-hover);
 }
 
+.data-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.data-table .empty-state {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.results-count {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.badge-warning {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
 /* ---------- TOOLBAR (search, filter, export) ---------- */
 .toolbar {
     display: flex;
@@ -312,10 +348,41 @@ select {
     color: var(--text-primary);
 }
 
+.form-error {
+    min-height: 20px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--danger);
+}
+
 .modal-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+}
+
+/* ---------- TOAST ---------- */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translate(-50%, 20px);
+    max-width: calc(100% - 32px);
+    padding: 12px 18px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 40;
+}
+
+.toast.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
 }
 
 /* ---------- SCROLLBAR ---------- */

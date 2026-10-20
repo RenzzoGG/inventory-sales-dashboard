@@ -53,55 +53,10 @@ function formatMoney(amount) {
     return currencyFormatter.format(amount);
 }
 
-
-// ---------- Cargar productos a la tabla ----------
-
-function loadProducts() {
-    const tableBody = document.getElementById("product-table-body");
-    tableBody.innerHTML = ""; // limpia
-
-    products.forEach(product => {
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td>${product.name}</td>
-            <td>${product.category}</td>
-            <td>${product.stock}</td>
-            <td>${formatMoney(product.price)}</td>
-        `;
-
-        tableBody.appendChild(row);
-    });
-}
-
-
-// ---------- BUSCADOR DE PRODUCTOS ----------
-
-function searchProducts() {
-    const searchText = document.getElementById("search-input").value.toLowerCase();
-
-    const filtered = products.filter(product =>
-        product.name.toLowerCase().includes(searchText) ||
-        product.category.toLowerCase().includes(searchText)
-    );
-
-    renderFilteredProducts(filtered);
-}
-
-function renderFilteredProducts(list) {
-    const tableBody = document.getElementById("product-table-body");
-    tableBody.innerHTML = "";
-
-    list.forEach(product => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${product.name}</td>
-            <td>${product.category}</td>
-            <td>${product.stock}</td>
-            <td>${formatMoney(product.price)}</td>
-        `;
-        tableBody.appendChild(row);
-    });
+// Fecha local en formato AAAA-MM-DD (para nombres de archivo)
+function formatFileDate(date) {
+    const pad = n => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 
@@ -119,12 +74,16 @@ function getRecentSales(days) {
     return sales.filter(sale => sale.date >= since);
 }
 
-function getLowStockProducts() {
-    return products.filter(p => p.stock <= LOW_STOCK_THRESHOLD);
+function isLowStock(product) {
+    return product.stock <= LOW_STOCK_THRESHOLD;
 }
 
-function getInventoryValue() {
-    return products.reduce((acc, p) => acc + p.price * p.stock, 0);
+function getLowStockProducts() {
+    return products.filter(isLowStock);
+}
+
+function getInventoryValue(list = products) {
+    return list.reduce((acc, p) => acc + p.price * p.stock, 0);
 }
 
 
@@ -150,134 +109,288 @@ function updateCards() {
 }
 
 
-// ---------- GENERAR CATEGORÍAS ÚNICAS ----------
+// ---------- TABLA DE PRODUCTOS ----------
 
-function loadCategories() {
-    const select = document.getElementById("category-filter");
+// textContent (y no innerHTML) para que el texto que escribe el usuario
+// nunca se interprete como HTML.
+function createCell(text, className) {
+    const cell = document.createElement("td");
+    cell.textContent = text;
+    if (className) cell.className = className;
+    return cell;
+}
 
-    const categories = [...new Set(products.map(p => p.category))];
+function createLowStockBadge() {
+    const badge = document.createElement("span");
+    badge.className = "badge badge-warning";
+    badge.textContent = "Low";
+    return badge;
+}
 
-    select.innerHTML = `<option value="all">All Categories</option>`;
+// Búsqueda y categoría se aplican juntas
+function getVisibleProducts() {
+    const searchText = document.getElementById("search-input").value.trim().toLowerCase();
+    const category = document.getElementById("category-filter").value;
 
-    categories.forEach(cat => {
-        const option = document.createElement("option");
-        option.value = cat;
-        option.textContent = cat;
-        select.appendChild(option);
+    return products.filter(product => {
+        const matchesCategory = category === "all" || product.category === category;
+        const matchesSearch =
+            product.name.toLowerCase().includes(searchText) ||
+            product.category.toLowerCase().includes(searchText);
+        return matchesCategory && matchesSearch;
     });
 }
 
+function renderProducts() {
+    const list = getVisibleProducts();
+    const tableBody = document.getElementById("product-table-body");
+    tableBody.replaceChildren();
 
-// ---------- FILTRAR POR CATEGORÍA ----------
-
-function filterByCategory() {
-    const selected = document.getElementById("category-filter").value;
-
-    let list = products;
-
-    if (selected !== "all") {
-        list = products.filter(p => p.category === selected);
+    if (list.length === 0) {
+        const row = document.createElement("tr");
+        const cell = createCell("No products match your search.", "empty-state");
+        cell.colSpan = 4;
+        row.appendChild(cell);
+        tableBody.appendChild(row);
     }
 
-    renderFilteredProducts(list);
+    list.forEach(product => {
+        const row = document.createElement("tr");
+
+        const stockCell = createCell(product.stock, "num");
+        if (isLowStock(product)) {
+            stockCell.append(" ", createLowStockBadge());
+        }
+
+        row.append(
+            createCell(product.name),
+            createCell(product.category),
+            stockCell,
+            createCell(formatMoney(product.price), "num")
+        );
+        tableBody.appendChild(row);
+    });
+
+    document.getElementById("results-count").textContent =
+        `Showing ${list.length} of ${products.length} products`;
 }
 
+
+// ---------- GENERAR CATEGORÍAS ÚNICAS ----------
+
+function getCategories() {
+    return [...new Set(products.map(p => p.category))].sort();
+}
+
+function loadCategories() {
+    const select = document.getElementById("category-filter");
+    const datalist = document.getElementById("category-options");
+    const selected = select.value;
+    const categories = getCategories();
+
+    select.replaceChildren(new Option("All Categories", "all"));
+    datalist.replaceChildren();
+
+    categories.forEach(cat => {
+        select.appendChild(new Option(cat, cat));
+        datalist.appendChild(new Option(cat));
+    });
+
+    // Conserva el filtro elegido si la categoría sigue existiendo
+    select.value = categories.includes(selected) ? selected : "all";
+}
+
+
+// ---------- AVISOS (toast) ----------
+
+let toastTimer;
+
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("visible");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("visible"), 3000);
+}
 
 
 // ---------- MODAL LOGIC ----------
 
 const modal = document.getElementById("modal");
-const btnAdd = document.getElementById("add-product-btn");
-const btnClose = document.getElementById("close-modal");
+const productForm = document.getElementById("product-form");
+const formError = document.getElementById("form-error");
+let lastFocusedElement = null;
 
-btnAdd.onclick = () => {
+function openModal() {
+    lastFocusedElement = document.activeElement;
     modal.classList.remove("hidden");
-};
+    document.getElementById("new-name").focus();
+}
 
-btnClose.onclick = () => {
+function closeModal() {
     modal.classList.add("hidden");
-};
+    productForm.reset();
+    formError.textContent = "";
+    // Devuelve el foco al botón que abrió el modal
+    if (lastFocusedElement) lastFocusedElement.focus();
+}
 
-document.getElementById("save-product").onclick = () => {
-    const name = document.getElementById("new-name").value.trim();
-    const category = document.getElementById("new-category").value.trim();
-    const stock = parseInt(document.getElementById("new-stock").value);
-    const price = parseFloat(document.getElementById("new-price").value);
+function isModalOpen() {
+    return !modal.classList.contains("hidden");
+}
 
-    if (!name || !category || isNaN(stock) || isNaN(price)) {
-        alert("Please fill out all fields correctly.");
+// Escape cierra; Tab no se sale del modal mientras está abierto
+function handleModalKeydown(event) {
+    if (!isModalOpen()) return;
+
+    if (event.key === "Escape") {
+        closeModal();
         return;
     }
 
-    const newProduct = {
+    if (event.key === "Tab") {
+        const focusable = modal.querySelectorAll("input, button");
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+}
+
+function showFormError(message, fieldId) {
+    formError.textContent = message;
+    document.getElementById(fieldId).focus();
+}
+
+function saveProduct(event) {
+    event.preventDefault();
+
+    const name = document.getElementById("new-name").value.trim();
+    let category = document.getElementById("new-category").value.trim();
+    const stockValue = document.getElementById("new-stock").value;
+    const priceValue = document.getElementById("new-price").value;
+    const stock = Number(stockValue);
+    const price = Number(priceValue);
+
+    if (!name) return showFormError("Please enter a product name.", "new-name");
+    if (!category) return showFormError("Please enter a category.", "new-category");
+    if (stockValue === "" || !Number.isInteger(stock) || stock < 0) {
+        return showFormError("Stock must be a whole number (0 or more).", "new-stock");
+    }
+    if (priceValue === "" || !(price > 0)) {
+        return showFormError("Price must be greater than $0.", "new-price");
+    }
+
+    // Reutiliza la categoría existente aunque se escriba con otras mayúsculas
+    const existing = getCategories().find(cat => cat.toLowerCase() === category.toLowerCase());
+    if (existing) category = existing;
+
+    products.push({
         id: Math.max(0, ...products.map(p => p.id)) + 1,
         name,
         category,
         stock,
-        price
-    };
-
-    products.push(newProduct);
-
-    loadProducts();
-    updateCards();
-    loadCategories();
-
-    modal.classList.add("hidden");
-
-    // limpiar inputs
-    document.getElementById("new-name").value = "";
-    document.getElementById("new-category").value = "";
-    document.getElementById("new-stock").value = "";
-    document.getElementById("new-price").value = "";
-};
-
-// ---------- EXPORTAR A PDF ----------
-function exportToPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Título
-    doc.setFontSize(18);
-    doc.text("Inventory & Sales Dashboard - Product List", 10, 15);
-
-    // Fecha
-    doc.setFontSize(11);
-    doc.text("Generated: " + new Date().toLocaleString("en-US"), 10, 23);
-
-    // Encabezados de tabla
-    const headers = ["Name", "Category", "Stock", "Price"];
-
-    let y = 35;
-
-    doc.setFontSize(12);
-    doc.text("Name", 10, y);
-    doc.text("Category", 70, y);
-    doc.text("Stock", 130, y);
-    doc.text("Price", 160, y);
-
-    y += 6;
-
-    // Línea separadora
-    doc.line(10, y, 200, y);
-    y += 5;
-
-    // Contenido de la tabla
-    products.forEach(p => {
-        doc.text(p.name, 10, y);
-        doc.text(p.category, 70, y);
-        doc.text(String(p.stock), 130, y);
-        doc.text(formatMoney(p.price), 160, y);
-
-        y += 7; // salto entre filas
+        price: Math.round(price * 100) / 100
     });
 
-    doc.save("inventory_report.pdf");
+    loadCategories();
+    renderProducts();
+    updateCards();
+    closeModal();
+    showToast(`"${name}" was added to the inventory.`);
 }
+
+
+// ---------- EXPORTAR A PDF ----------
+
+// Recorta el texto con "..." si no cabe en el ancho de la columna
+function fitText(doc, text, maxWidth) {
+    if (doc.getTextWidth(text) <= maxWidth) return text;
+    let cut = text;
+    while (cut.length > 1 && doc.getTextWidth(cut + "...") > maxWidth) {
+        cut = cut.slice(0, -1);
+    }
+    return cut + "...";
+}
+
+function exportToPDF() {
+    if (!window.jspdf) {
+        showToast("The PDF library could not be loaded. Check your connection.");
+        return;
+    }
+
+    const list = getVisibleProducts();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const marginBottom = 20;
+    const rowHeight = 8;
+
+    // x = posición; las columnas numéricas se alinean a la derecha
+    const columns = {
+        name: { x: 14, width: 82 },
+        category: { x: 100, width: 40 },
+        stock: { x: 160 },
+        price: { x: 196 }
+    };
+
+    // Título y fecha
+    doc.setFontSize(18);
+    doc.text("Inventory Report", 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Generated: " + new Date().toLocaleString("en-US"), 14, 25);
+    doc.text(`${list.length} products · Inventory value: ${formatMoney(getInventoryValue(list))}`, 14, 31);
+    doc.setTextColor(0);
+
+    function drawHeader(y) {
+        doc.setFontSize(11);
+        doc.setFont(undefined, "bold");
+        doc.text("Name", columns.name.x, y);
+        doc.text("Category", columns.category.x, y);
+        doc.text("Stock", columns.stock.x, y, { align: "right" });
+        doc.text("Price", columns.price.x, y, { align: "right" });
+        doc.setFont(undefined, "normal");
+        doc.line(14, y + 3, 196, y + 3);
+        return y + rowHeight + 2;
+    }
+
+    let y = drawHeader(42);
+
+    list.forEach(p => {
+        // Nueva página cuando ya no cabe la fila
+        if (y > pageHeight - marginBottom) {
+            doc.addPage();
+            y = drawHeader(20);
+        }
+
+        doc.text(fitText(doc, p.name, columns.name.width), columns.name.x, y);
+        doc.text(fitText(doc, p.category, columns.category.width), columns.category.x, y);
+        doc.text(String(p.stock), columns.stock.x, y, { align: "right" });
+        doc.text(formatMoney(p.price), columns.price.x, y, { align: "right" });
+        y += rowHeight;
+    });
+
+    doc.save(`inventory_report_${formatFileDate(new Date())}.pdf`);
+}
+
+
 // ---------- EXPORTAR A EXCEL ----------
+
 function exportToExcel() {
-    // Convertir los productos a un formato plano para Excel
-    const data = products.map(p => ({
+    if (!window.XLSX) {
+        showToast("The Excel library could not be loaded. Check your connection.");
+        return;
+    }
+
+    // Convertir los productos visibles a un formato plano para Excel
+    const data = getVisibleProducts().map(p => ({
         Name: p.name,
         Category: p.category,
         Stock: p.stock,
@@ -293,23 +406,34 @@ function exportToExcel() {
         worksheet["D" + row].z = "$#,##0.00";
     }
 
-    // Agregar hoja al libro
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+    // Ancho de columnas
+    worksheet["!cols"] = [{ wch: 32 }, { wch: 16 }, { wch: 8 }, { wch: 12 }];
 
-    // Descargar archivo
-    XLSX.writeFile(workbook, "inventory_report.xlsx");
+    // Agregar hoja al libro y descargar
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+    XLSX.writeFile(workbook, `inventory_report_${formatFileDate(new Date())}.xlsx`);
 }
 
 
 // ---------- Inicializar Dashboard ----------
 
-window.onload = () => {
-    loadProducts();
-    updateCards();
+document.addEventListener("DOMContentLoaded", () => {
     loadCategories();
+    renderProducts();
+    updateCards();
 
-    document.getElementById("search-input").addEventListener("input", searchProducts);
-    document.getElementById("category-filter").addEventListener("change", filterByCategory);
+    document.getElementById("search-input").addEventListener("input", renderProducts);
+    document.getElementById("category-filter").addEventListener("change", renderProducts);
     document.getElementById("export-pdf-btn").addEventListener("click", exportToPDF);
     document.getElementById("export-excel-btn").addEventListener("click", exportToExcel);
-};
+
+    document.getElementById("add-product-btn").addEventListener("click", openModal);
+    document.getElementById("close-modal").addEventListener("click", closeModal);
+    productForm.addEventListener("submit", saveProduct);
+    document.addEventListener("keydown", handleModalKeydown);
+
+    // Clic fuera del contenido cierra el modal
+    modal.addEventListener("click", event => {
+        if (event.target === modal) closeModal();
+    });
+});
