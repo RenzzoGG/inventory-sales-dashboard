@@ -63,6 +63,13 @@ function formatDate(date) {
     return dateFormatter.format(date);
 }
 
+// Sin año: para listas de días recientes
+const shortDateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+
+function formatShortDate(date) {
+    return shortDateFormatter.format(date);
+}
+
 // Fecha local en formato AAAA-MM-DD (para nombres de archivo)
 function formatFileDate(date) {
     const pad = n => String(n).padStart(2, "0");
@@ -196,9 +203,16 @@ function renderProducts() {
             stockCell.append(" ", createLowStockBadge());
         }
 
+        // En móvil la categoría se muestra bajo el nombre (la columna se oculta)
+        const nameCell = createCell(product.name);
+        const categoryLine = document.createElement("span");
+        categoryLine.className = "cell-sub";
+        categoryLine.textContent = product.category;
+        nameCell.appendChild(categoryLine);
+
         tableBody.appendChild(createRow([
-            createCell(product.name),
-            createCell(product.category),
+            nameCell,
+            createCell(product.category, "col-category"),
             stockCell,
             createCell(formatMoney(product.price), "num")
         ]));
@@ -232,7 +246,7 @@ function renderDashboardTables() {
 
     sales.slice(0, 5).forEach(sale => {
         recentBody.appendChild(createRow([
-            createCell(formatDate(sale.date)),
+            createCell(formatShortDate(sale.date), "nowrap"),
             createCell(getProductName(sale.productId)),
             createCell(formatMoney(getSaleTotal(sale)), "num")
         ]));
@@ -249,7 +263,7 @@ function renderSales() {
     sales.forEach(sale => {
         tableBody.appendChild(createRow([
             createCell("#" + sale.id),
-            createCell(formatDate(sale.date)),
+            createCell(formatDate(sale.date), "nowrap"),
             createCell(getProductName(sale.productId)),
             createCell(sale.qty, "num"),
             createCell(formatMoney(sale.unitPrice), "num"),

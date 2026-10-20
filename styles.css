@@ -197,9 +197,10 @@ select {
 }
 
 /* Paneles: tarjetas con título (Dashboard, Reports, Settings) */
+/* minmax(0, 1fr): deja que el panel se encoja y su tabla haga scroll por dentro */
 .panels {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 25px;
 }
 
@@ -316,6 +317,18 @@ select {
     text-align: right;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+}
+
+.data-table .nowrap {
+    white-space: nowrap;
+}
+
+/* Línea secundaria dentro de una celda (solo visible en móvil) */
+.cell-sub {
+    display: none;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 .data-table .empty-state {
@@ -544,7 +557,7 @@ select:focus-visible {
     }
 
     .panels {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -629,6 +642,15 @@ select:focus-visible {
     .data-table th,
     .data-table td {
         padding: 12px 14px;
+    }
+
+    /* Products: Category pasa debajo del nombre para que Price se vea sin scroll */
+    .data-table .col-category {
+        display: none;
+    }
+
+    .cell-sub {
+        display: block;
     }
 
     .modal-content {
