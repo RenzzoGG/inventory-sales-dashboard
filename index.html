@@ -45,11 +45,27 @@
                 <h1>Dashboard Overview</h1>
             </header>
 
-            <section class="cards">
-                <div class="card">Total Products: <span id="total-products">0</span></div>
-                <div class="card">Total Sales: <span id="total-sales">$0</span></div>
-                <div class="card">Low Stock Items: <span id="low-stock">0</span></div>
-                <div class="card">Monthly Revenue: <span id="monthly-revenue">$0</span></div>
+            <section class="cards" aria-label="Key metrics">
+                <article class="card">
+                    <h3 class="card-label">Total Products</h3>
+                    <p class="card-value" id="total-products">0</p>
+                    <p class="card-note" id="total-units"></p>
+                </article>
+                <article class="card">
+                    <h3 class="card-label">Revenue (30 days)</h3>
+                    <p class="card-value" id="revenue">$0.00</p>
+                    <p class="card-note" id="revenue-note"></p>
+                </article>
+                <article class="card">
+                    <h3 class="card-label">Low Stock Items</h3>
+                    <p class="card-value" id="low-stock">0</p>
+                    <p class="card-note" id="low-stock-note"></p>
+                </article>
+                <article class="card">
+                    <h3 class="card-label">Inventory Value</h3>
+                    <p class="card-value" id="inventory-value">$0.00</p>
+                    <p class="card-note">Stock × unit price</p>
+                </article>
             </section>
 
             <section class="table-section">

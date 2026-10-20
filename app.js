@@ -14,6 +14,37 @@ const products = [
 ];
 
 
+// ---------- VENTAS DE EJEMPLO ----------
+// Fechas relativas a hoy para que la demo siempre tenga ventas recientes.
+
+function daysAgo(days) {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() - days);
+    return date;
+}
+
+// [productId, cantidad, hace cuántos días]
+const sampleSales = [
+    [2, 3, 0], [6, 1, 1], [10, 2, 2], [4, 1, 3], [7, 1, 4],
+    [1, 1, 6], [2, 2, 8], [3, 2, 9], [8, 1, 11], [10, 4, 13],
+    [5, 1, 15], [6, 2, 17], [9, 1, 19], [4, 2, 22], [7, 2, 25],
+    [1, 2, 28], [2, 5, 33], [3, 1, 37], [6, 1, 41], [8, 2, 45],
+    [10, 3, 50], [9, 1, 54], [4, 3, 58]
+];
+
+const sales = sampleSales.map(([productId, qty, days], index) => ({
+    id: 1001 + index,
+    productId,
+    qty,
+    unitPrice: products.find(p => p.id === productId).price,
+    date: daysAgo(days)
+}));
+
+// Más reciente primero
+sales.sort((a, b) => b.date - a.date);
+
+
 // ---------- Formato de moneda (Estados Unidos) ----------
 
 const currencyFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
@@ -74,22 +105,48 @@ function renderFilteredProducts(list) {
 }
 
 
+// ---------- MÉTRICAS ----------
+
+const LOW_STOCK_THRESHOLD = 5;
+const REVENUE_WINDOW_DAYS = 30;
+
+function getSaleTotal(sale) {
+    return sale.qty * sale.unitPrice;
+}
+
+function getRecentSales(days) {
+    const since = daysAgo(days);
+    return sales.filter(sale => sale.date >= since);
+}
+
+function getLowStockProducts() {
+    return products.filter(p => p.stock <= LOW_STOCK_THRESHOLD);
+}
+
+function getInventoryValue() {
+    return products.reduce((acc, p) => acc + p.price * p.stock, 0);
+}
+
+
 // ---------- Actualizar cards ----------
 
 function updateCards() {
-    // Total de productos (cantidad de items en inventario)
+    const unitsInStock = products.reduce((acc, p) => acc + p.stock, 0);
     document.getElementById("total-products").textContent = products.length;
+    document.getElementById("total-units").textContent = `${unitsInStock} units in stock`;
 
-    // Total de ventas (por ahora 0 hasta agregar módulo de ventas)
-    document.getElementById("total-sales").textContent = formatMoney(0);
+    // Ingresos de los últimos 30 días, calculados a partir de las ventas
+    const recentSales = getRecentSales(REVENUE_WINDOW_DAYS);
+    const revenue = recentSales.reduce((acc, sale) => acc + getSaleTotal(sale), 0);
+    const unitsSold = recentSales.reduce((acc, sale) => acc + sale.qty, 0);
+    document.getElementById("revenue").textContent = formatMoney(revenue);
+    document.getElementById("revenue-note").textContent = `${recentSales.length} orders · ${unitsSold} units sold`;
 
-    // Productos con poco stock (menos de 5)
-    const lowStockCount = products.filter(p => p.stock < 5).length;
-    document.getElementById("low-stock").textContent = lowStockCount;
+    document.getElementById("low-stock").textContent = getLowStockProducts().length;
+    document.getElementById("low-stock-note").textContent = `${LOW_STOCK_THRESHOLD} units or fewer`;
 
-    // Revenue mensual simulado (sumatoria)
-    const revenue = products.reduce((acc, p) => acc + (p.price * p.stock), 0);
-    document.getElementById("monthly-revenue").textContent = formatMoney(revenue);
+    // Valor del inventario: precio × stock (antes aparecía como "Monthly Revenue")
+    document.getElementById("inventory-value").textContent = formatMoney(getInventoryValue());
 }
 
 

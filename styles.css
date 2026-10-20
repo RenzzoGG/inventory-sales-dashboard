@@ -123,12 +123,24 @@ select {
     border-color: var(--accent);
 }
 
-.card span {
-    display: block;
-    margin-top: 10px;
+.card-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.card-value {
+    margin-top: 8px;
     font-size: 26px;
-    color: var(--accent);
     font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.card-note {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 /* ---------- TABLE SECTION ---------- */
