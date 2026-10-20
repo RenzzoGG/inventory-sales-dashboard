@@ -754,9 +754,36 @@ select:focus-visible {
         padding: 12px 14px;
     }
 
-    /* Products: Category pasa debajo del nombre para que Price se vea sin scroll */
-    .data-table .col-category {
+    /* Products y Sales: las columnas secundarias pasan a la línea .cell-sub
+       para que lo importante se vea sin scroll horizontal */
+    .data-table .col-hide-mobile {
         display: none;
+    }
+
+    .data-table.sales-table {
+        min-width: 0;
+    }
+
+    /* Sales: fecha completa + producto + total en 3 columnas; padding y texto
+       más compactos para que quepan desde 360px sin scroll */
+    .sales-table th,
+    .sales-table td {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .sales-table th:first-child,
+    .sales-table td:first-child {
+        padding-left: 14px;
+    }
+
+    .sales-table th:last-child,
+    .sales-table td:last-child {
+        padding-right: 14px;
+    }
+
+    .sales-table td {
+        font-size: 14px;
     }
 
     .cell-sub {

@@ -196,6 +196,17 @@ function getProductName(productId) {
     return product ? product.name : "Unknown product";
 }
 
+// Celda con una línea secundaria debajo: en móvil muestra los datos
+// de las columnas ocultas (.col-hide-mobile) para evitar el scroll horizontal
+function createCellWithSub(text, subText) {
+    const cell = createCell(text);
+    const sub = document.createElement("span");
+    sub.className = "cell-sub";
+    sub.textContent = subText;
+    cell.appendChild(sub);
+    return cell;
+}
+
 function createLowStockBadge() {
     const badge = document.createElement("span");
     badge.className = "badge badge-warning";
@@ -233,15 +244,9 @@ function renderProducts() {
         }
 
         // En móvil la categoría se muestra bajo el nombre (la columna se oculta)
-        const nameCell = createCell(product.name);
-        const categoryLine = document.createElement("span");
-        categoryLine.className = "cell-sub";
-        categoryLine.textContent = product.category;
-        nameCell.appendChild(categoryLine);
-
         tableBody.appendChild(createRow([
-            nameCell,
-            createCell(product.category, "col-category"),
+            createCellWithSub(product.name, product.category),
+            createCell(product.category, "col-hide-mobile"),
             stockCell,
             createCell(formatMoney(product.price), "num")
         ]));
@@ -549,12 +554,16 @@ function renderSales() {
     tableBody.replaceChildren();
 
     sales.forEach(sale => {
+        // En móvil pedido, cantidad y precio unitario van bajo el producto
+        // (\u00A0 = espacio no separable: "2 × $39.99" nunca se parte en dos líneas)
+        const details = `#${sale.id} · ${sale.qty}\u00A0×\u00A0${formatMoney(sale.unitPrice)}`;
+
         tableBody.appendChild(createRow([
-            createCell("#" + sale.id),
+            createCell("#" + sale.id, "col-hide-mobile"),
             createCell(formatDate(sale.date), "nowrap"),
-            createCell(getProductName(sale.productId)),
-            createCell(sale.qty, "num"),
-            createCell(formatMoney(sale.unitPrice), "num"),
+            createCellWithSub(getProductName(sale.productId), details),
+            createCell(sale.qty, "num col-hide-mobile"),
+            createCell(formatMoney(sale.unitPrice), "num col-hide-mobile"),
             createCell(formatMoney(getSaleTotal(sale)), "num")
         ]));
     });
