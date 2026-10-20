@@ -1,13 +1,26 @@
 // ---------- MOCK DATA (Datos de ejemplo) ----------
 
 const products = [
-    { name: "Laptop Lenovo ThinkPad", category: "Electronics", stock: 8, price: 14999 },
-    { name: "Mouse Logitech G203", category: "Accessories", stock: 35, price: 499 },
-    { name: "Monitor Samsung 24''", category: "Electronics", stock: 5, price: 2899 },
-    { name: "Teclado Redragon K552", category: "Accessories", stock: 15, price: 899 },
-    { name: "Silla Gamer Razer", category: "Furniture", stock: 2, price: 3999 },
-    { name: "iPhone 14", category: "Electronics", stock: 10, price: 18999 }
+    { id: 1, name: "Lenovo ThinkPad E14 Laptop", category: "Electronics", stock: 8, price: 1149.00 },
+    { id: 2, name: "Logitech G203 Mouse", category: "Accessories", stock: 35, price: 39.99 },
+    { id: 3, name: "Samsung 24\" Monitor", category: "Electronics", stock: 5, price: 179.99 },
+    { id: 4, name: "Redragon K552 Keyboard", category: "Accessories", stock: 15, price: 49.99 },
+    { id: 5, name: "Razer Iskur Gaming Chair", category: "Furniture", stock: 2, price: 499.00 },
+    { id: 6, name: "iPhone 14", category: "Electronics", stock: 10, price: 699.00 },
+    { id: 7, name: "Sony WH-1000XM5 Headphones", category: "Audio", stock: 12, price: 399.99 },
+    { id: 8, name: "JBL Flip 6 Speaker", category: "Audio", stock: 4, price: 129.95 },
+    { id: 9, name: "Standing Desk 48\"", category: "Furniture", stock: 6, price: 349.00 },
+    { id: 10, name: "Anker USB-C Hub 7-in-1", category: "Accessories", stock: 40, price: 34.99 }
 ];
+
+
+// ---------- Formato de moneda (Estados Unidos) ----------
+
+const currencyFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
+function formatMoney(amount) {
+    return currencyFormatter.format(amount);
+}
 
 
 // ---------- Cargar productos a la tabla ----------
@@ -23,7 +36,7 @@ function loadProducts() {
             <td>${product.name}</td>
             <td>${product.category}</td>
             <td>${product.stock}</td>
-            <td>$${product.price}</td>
+            <td>${formatMoney(product.price)}</td>
         `;
 
         tableBody.appendChild(row);
@@ -54,7 +67,7 @@ function renderFilteredProducts(list) {
             <td>${product.name}</td>
             <td>${product.category}</td>
             <td>${product.stock}</td>
-            <td>$${product.price}</td>
+            <td>${formatMoney(product.price)}</td>
         `;
         tableBody.appendChild(row);
     });
@@ -68,7 +81,7 @@ function updateCards() {
     document.getElementById("total-products").textContent = products.length;
 
     // Total de ventas (por ahora 0 hasta agregar módulo de ventas)
-    document.getElementById("total-sales").textContent = "$0";
+    document.getElementById("total-sales").textContent = formatMoney(0);
 
     // Productos con poco stock (menos de 5)
     const lowStockCount = products.filter(p => p.stock < 5).length;
@@ -76,7 +89,7 @@ function updateCards() {
 
     // Revenue mensual simulado (sumatoria)
     const revenue = products.reduce((acc, p) => acc + (p.price * p.stock), 0);
-    document.getElementById("monthly-revenue").textContent = "$" + revenue.toLocaleString();
+    document.getElementById("monthly-revenue").textContent = formatMoney(revenue);
 }
 
 
@@ -140,6 +153,7 @@ document.getElementById("save-product").onclick = () => {
     }
 
     const newProduct = {
+        id: Math.max(0, ...products.map(p => p.id)) + 1,
         name,
         category,
         stock,
@@ -172,7 +186,7 @@ function exportToPDF() {
 
     // Fecha
     doc.setFontSize(11);
-    doc.text("Generated: " + new Date().toLocaleString(), 10, 23);
+    doc.text("Generated: " + new Date().toLocaleString("en-US"), 10, 23);
 
     // Encabezados de tabla
     const headers = ["Name", "Category", "Stock", "Price"];
@@ -196,7 +210,7 @@ function exportToPDF() {
         doc.text(p.name, 10, y);
         doc.text(p.category, 70, y);
         doc.text(String(p.stock), 130, y);
-        doc.text("$" + p.price, 160, y);
+        doc.text(formatMoney(p.price), 160, y);
 
         y += 7; // salto entre filas
     });
@@ -216,6 +230,11 @@ function exportToExcel() {
     // Crear un workbook y un worksheet
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(data);
+
+    // Formato de moneda en la columna Price (D), conservando el valor numérico
+    for (let row = 2; row <= data.length + 1; row++) {
+        worksheet["D" + row].z = "$#,##0.00";
+    }
 
     // Agregar hoja al libro
     XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
