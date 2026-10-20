@@ -28,81 +28,227 @@
 
         <!-- Sidebar -->
         <aside class="sidebar">
-            <h2 class="logo">Inventory<span>Pro</span></h2>
+            <a href="#dashboard" class="logo">Inventory<span>Pro</span></a>
 
-            <nav class="menu">
-                <a href="#" class="active">Dashboard</a>
-                <a href="#">Products</a>
-                <a href="#">Sales</a>
-                <a href="#">Reports</a>
-                <a href="#">Settings</a>
+            <nav class="menu" aria-label="Main">
+                <a href="#dashboard" class="active" aria-current="page">Dashboard</a>
+                <a href="#products">Products</a>
+                <a href="#sales">Sales</a>
+                <a href="#reports">Reports</a>
+                <a href="#settings">Settings</a>
             </nav>
         </aside>
 
-        <!-- Main content -->
+        <!-- Main content: una sección por opción del menú -->
         <main class="content">
-            <header class="topbar">
-                <h1>Dashboard Overview</h1>
-            </header>
 
-            <section class="cards" aria-label="Key metrics">
-                <article class="card">
-                    <h3 class="card-label">Total Products</h3>
-                    <p class="card-value" id="total-products">0</p>
-                    <p class="card-note" id="total-units"></p>
-                </article>
-                <article class="card">
-                    <h3 class="card-label">Revenue (30 days)</h3>
-                    <p class="card-value" id="revenue">$0.00</p>
-                    <p class="card-note" id="revenue-note"></p>
-                </article>
-                <article class="card">
-                    <h3 class="card-label">Low Stock Items</h3>
-                    <p class="card-value" id="low-stock">0</p>
-                    <p class="card-note" id="low-stock-note"></p>
-                </article>
-                <article class="card">
-                    <h3 class="card-label">Inventory Value</h3>
-                    <p class="card-value" id="inventory-value">$0.00</p>
-                    <p class="card-note">Stock × unit price</p>
-                </article>
-            </section>
-
-            <section class="table-section">
-                <div class="table-header">
-                    <h2>Product List</h2>
-                    <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
-                </div>
-
-                <div class="toolbar">
-                    <input type="search" id="search-input" class="search-bar" placeholder="Search products..." aria-label="Search products">
-
-                    <select id="category-filter" class="category-select" aria-label="Filter by category">
-                        <option value="all">All Categories</option>
-                    </select>
-
-                    <div class="toolbar-actions">
-                        <button id="export-pdf-btn" class="btn btn-secondary">Export to PDF</button>
-                        <button id="export-excel-btn" class="btn btn-secondary">Export to Excel</button>
+            <!-- ===== DASHBOARD ===== -->
+            <section class="view" data-view="dashboard" aria-labelledby="dashboard-title">
+                <header class="topbar">
+                    <div>
+                        <h1 id="dashboard-title" tabindex="-1">Dashboard Overview</h1>
+                        <p class="subtitle">Current stock and the last 30 days of sales.</p>
                     </div>
+                </header>
+
+                <section class="cards" aria-label="Key metrics">
+                    <article class="card">
+                        <h3 class="card-label">Total Products</h3>
+                        <p class="card-value" id="total-products">0</p>
+                        <p class="card-note" id="total-units"></p>
+                    </article>
+                    <article class="card">
+                        <h3 class="card-label">Revenue (30 days)</h3>
+                        <p class="card-value" id="revenue">$0.00</p>
+                        <p class="card-note" id="revenue-note"></p>
+                    </article>
+                    <article class="card">
+                        <h3 class="card-label">Low Stock Items</h3>
+                        <p class="card-value" id="low-stock">0</p>
+                        <p class="card-note" id="low-stock-note"></p>
+                    </article>
+                    <article class="card">
+                        <h3 class="card-label">Inventory Value</h3>
+                        <p class="card-value" id="inventory-value">$0.00</p>
+                        <p class="card-note">Stock × unit price</p>
+                    </article>
+                </section>
+
+                <div class="panels">
+                    <section class="table-section panel">
+                        <div class="table-header">
+                            <h2>Low Stock</h2>
+                            <a href="#products" class="link">View all products</a>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Product</th>
+                                        <th scope="col" class="num">Stock</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="low-stock-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="table-section panel">
+                        <div class="table-header">
+                            <h2>Recent Sales</h2>
+                            <a href="#sales" class="link">View all sales</a>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Product</th>
+                                        <th scope="col" class="num">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-sales-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
                 </div>
-
-                <p id="results-count" class="results-count" aria-live="polite"></p>
-
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Category</th>
-                            <th scope="col" class="num">Stock</th>
-                            <th scope="col" class="num">Price</th>
-                        </tr>
-                    </thead>
-                    <tbody id="product-table-body">
-                        <!-- JS inserts rows here -->
-                    </tbody>
-                </table>
             </section>
+
+            <!-- ===== PRODUCTS ===== -->
+            <section class="view" data-view="products" aria-labelledby="products-title" hidden>
+                <header class="topbar">
+                    <div>
+                        <h1 id="products-title" tabindex="-1">Products</h1>
+                        <p class="subtitle">Search, filter, add and export your inventory.</p>
+                    </div>
+                    <button id="add-product-btn" class="btn btn-primary">+ Add Product</button>
+                </header>
+
+                <section class="table-section">
+                    <h2 class="visually-hidden">Product List</h2>
+
+                    <div class="toolbar">
+                        <input type="search" id="search-input" class="search-bar" placeholder="Search products..." aria-label="Search products">
+
+                        <select id="category-filter" class="category-select" aria-label="Filter by category">
+                            <option value="all">All Categories</option>
+                        </select>
+
+                        <div class="toolbar-actions">
+                            <button id="export-pdf-btn" class="btn btn-secondary">Export to PDF</button>
+                            <button id="export-excel-btn" class="btn btn-secondary">Export to Excel</button>
+                        </div>
+                    </div>
+
+                    <p id="results-count" class="results-count" aria-live="polite"></p>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Category</th>
+                                    <th scope="col" class="num">Stock</th>
+                                    <th scope="col" class="num">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-table-body">
+                                <!-- JS inserts rows here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <!-- ===== SALES ===== -->
+            <section class="view" data-view="sales" aria-labelledby="sales-title" hidden>
+                <header class="topbar">
+                    <div>
+                        <h1 id="sales-title" tabindex="-1">Sales</h1>
+                        <p class="subtitle" id="sales-summary"></p>
+                    </div>
+                </header>
+
+                <section class="table-section">
+                    <h2>Order History</h2>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Order</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Product</th>
+                                    <th scope="col" class="num">Qty</th>
+                                    <th scope="col" class="num">Unit Price</th>
+                                    <th scope="col" class="num">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <!-- ===== REPORTS ===== -->
+            <section class="view" data-view="reports" aria-labelledby="reports-title" hidden>
+                <header class="topbar">
+                    <div>
+                        <h1 id="reports-title" tabindex="-1">Reports</h1>
+                        <p class="subtitle">Inventory and sales summarized by category.</p>
+                    </div>
+                </header>
+
+                <section class="table-section">
+                    <h2>Summary by Category</h2>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Category</th>
+                                    <th scope="col" class="num">Products</th>
+                                    <th scope="col" class="num">Units in Stock</th>
+                                    <th scope="col" class="num">Inventory Value</th>
+                                    <th scope="col" class="num">Revenue (30 days)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body"></tbody>
+                            <tfoot id="report-table-foot"></tfoot>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="table-section panel">
+                    <h2>Download Full Inventory</h2>
+                    <p class="panel-text">Export every product, regardless of the filters applied on the Products page.</p>
+                    <div class="button-row">
+                        <button id="report-pdf-btn" class="btn btn-secondary">Export to PDF</button>
+                        <button id="report-excel-btn" class="btn btn-secondary">Export to Excel</button>
+                    </div>
+                </section>
+            </section>
+
+            <!-- ===== SETTINGS ===== -->
+            <section class="view" data-view="settings" aria-labelledby="settings-title" hidden>
+                <header class="topbar">
+                    <div>
+                        <h1 id="settings-title" tabindex="-1">Settings</h1>
+                        <p class="subtitle">Preferences for this demo session.</p>
+                    </div>
+                </header>
+
+                <section class="table-section panel">
+                    <h2>Low Stock Alert</h2>
+                    <label for="threshold-input" class="panel-text">Mark a product as low stock when it has this many units or fewer:</label>
+                    <input type="number" id="threshold-input" class="setting-input" min="0" step="1">
+                </section>
+
+                <section class="table-section panel">
+                    <h2>Demo Data</h2>
+                    <p class="panel-text">This demo keeps its data in memory, so any changes reset when the page reloads.</p>
+                    <button id="reset-data-btn" class="btn btn-secondary">Reset demo data</button>
+                </section>
+            </section>
+
         </main>
 
     </div>

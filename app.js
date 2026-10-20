@@ -14,6 +14,10 @@ const products = [
 ];
 
 
+// Copia original para "Reset demo data"
+const initialProducts = products.map(p => ({ ...p }));
+
+
 // ---------- VENTAS DE EJEMPLO ----------
 // Fechas relativas a hoy para que la demo siempre tenga ventas recientes.
 
@@ -53,6 +57,12 @@ function formatMoney(amount) {
     return currencyFormatter.format(amount);
 }
 
+const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+function formatDate(date) {
+    return dateFormatter.format(date);
+}
+
 // Fecha local en formato AAAA-MM-DD (para nombres de archivo)
 function formatFileDate(date) {
     const pad = n => String(n).padStart(2, "0");
@@ -62,8 +72,11 @@ function formatFileDate(date) {
 
 // ---------- MÉTRICAS ----------
 
-const LOW_STOCK_THRESHOLD = 5;
+const DEFAULT_LOW_STOCK_THRESHOLD = 5;
 const REVENUE_WINDOW_DAYS = 30;
+
+// Se puede cambiar desde Settings
+let lowStockThreshold = DEFAULT_LOW_STOCK_THRESHOLD;
 
 function getSaleTotal(sale) {
     return sale.qty * sale.unitPrice;
@@ -75,7 +88,7 @@ function getRecentSales(days) {
 }
 
 function isLowStock(product) {
-    return product.stock <= LOW_STOCK_THRESHOLD;
+    return product.stock <= lowStockThreshold;
 }
 
 function getLowStockProducts() {
@@ -84,6 +97,14 @@ function getLowStockProducts() {
 
 function getInventoryValue(list = products) {
     return list.reduce((acc, p) => acc + p.price * p.stock, 0);
+}
+
+function getRevenue(list) {
+    return list.reduce((acc, sale) => acc + getSaleTotal(sale), 0);
+}
+
+function getProductById(id) {
+    return products.find(p => p.id === id);
 }
 
 
@@ -96,13 +117,13 @@ function updateCards() {
 
     // Ingresos de los últimos 30 días, calculados a partir de las ventas
     const recentSales = getRecentSales(REVENUE_WINDOW_DAYS);
-    const revenue = recentSales.reduce((acc, sale) => acc + getSaleTotal(sale), 0);
+    const revenue = getRevenue(recentSales);
     const unitsSold = recentSales.reduce((acc, sale) => acc + sale.qty, 0);
     document.getElementById("revenue").textContent = formatMoney(revenue);
     document.getElementById("revenue-note").textContent = `${recentSales.length} orders · ${unitsSold} units sold`;
 
     document.getElementById("low-stock").textContent = getLowStockProducts().length;
-    document.getElementById("low-stock-note").textContent = `${LOW_STOCK_THRESHOLD} units or fewer`;
+    document.getElementById("low-stock-note").textContent = `${lowStockThreshold} units or fewer`;
 
     // Valor del inventario: precio × stock (antes aparecía como "Monthly Revenue")
     document.getElementById("inventory-value").textContent = formatMoney(getInventoryValue());
@@ -118,6 +139,25 @@ function createCell(text, className) {
     cell.textContent = text;
     if (className) cell.className = className;
     return cell;
+}
+
+// Fila de tabla a partir de una lista de celdas
+function createRow(cells) {
+    const row = document.createElement("tr");
+    row.append(...cells);
+    return row;
+}
+
+// Fila con un mensaje que ocupa todas las columnas
+function createEmptyRow(message, columns) {
+    const cell = createCell(message, "empty-state");
+    cell.colSpan = columns;
+    return createRow([cell]);
+}
+
+function getProductName(productId) {
+    const product = getProductById(productId);
+    return product ? product.name : "Unknown product";
 }
 
 function createLowStockBadge() {
@@ -147,32 +187,113 @@ function renderProducts() {
     tableBody.replaceChildren();
 
     if (list.length === 0) {
-        const row = document.createElement("tr");
-        const cell = createCell("No products match your search.", "empty-state");
-        cell.colSpan = 4;
-        row.appendChild(cell);
-        tableBody.appendChild(row);
+        tableBody.appendChild(createEmptyRow("No products match your search.", 4));
     }
 
     list.forEach(product => {
-        const row = document.createElement("tr");
-
         const stockCell = createCell(product.stock, "num");
         if (isLowStock(product)) {
             stockCell.append(" ", createLowStockBadge());
         }
 
-        row.append(
+        tableBody.appendChild(createRow([
             createCell(product.name),
             createCell(product.category),
             stockCell,
             createCell(formatMoney(product.price), "num")
-        );
-        tableBody.appendChild(row);
+        ]));
     });
 
     document.getElementById("results-count").textContent =
         `Showing ${list.length} of ${products.length} products`;
+}
+
+
+// ---------- DASHBOARD: STOCK BAJO Y VENTAS RECIENTES ----------
+
+function renderDashboardTables() {
+    const lowStockBody = document.getElementById("low-stock-body");
+    const lowStock = getLowStockProducts().sort((a, b) => a.stock - b.stock);
+    lowStockBody.replaceChildren();
+
+    if (lowStock.length === 0) {
+        lowStockBody.appendChild(createEmptyRow("All products are well stocked.", 2));
+    }
+
+    lowStock.forEach(product => {
+        lowStockBody.appendChild(createRow([
+            createCell(product.name),
+            createCell(product.stock, "num")
+        ]));
+    });
+
+    const recentBody = document.getElementById("recent-sales-body");
+    recentBody.replaceChildren();
+
+    sales.slice(0, 5).forEach(sale => {
+        recentBody.appendChild(createRow([
+            createCell(formatDate(sale.date)),
+            createCell(getProductName(sale.productId)),
+            createCell(formatMoney(getSaleTotal(sale)), "num")
+        ]));
+    });
+}
+
+
+// ---------- SALES ----------
+
+function renderSales() {
+    const tableBody = document.getElementById("sales-table-body");
+    tableBody.replaceChildren();
+
+    sales.forEach(sale => {
+        tableBody.appendChild(createRow([
+            createCell("#" + sale.id),
+            createCell(formatDate(sale.date)),
+            createCell(getProductName(sale.productId)),
+            createCell(sale.qty, "num"),
+            createCell(formatMoney(sale.unitPrice), "num"),
+            createCell(formatMoney(getSaleTotal(sale)), "num")
+        ]));
+    });
+
+    document.getElementById("sales-summary").textContent =
+        `${sales.length} orders · ${formatMoney(getRevenue(sales))} in total revenue`;
+}
+
+
+// ---------- REPORTS: RESUMEN POR CATEGORÍA ----------
+
+function renderReports() {
+    const tableBody = document.getElementById("report-table-body");
+    const tableFoot = document.getElementById("report-table-foot");
+    const recentSales = getRecentSales(REVENUE_WINDOW_DAYS);
+    tableBody.replaceChildren();
+
+    getCategories().forEach(category => {
+        const categoryProducts = products.filter(p => p.category === category);
+        const categorySales = recentSales.filter(sale => {
+            const product = getProductById(sale.productId);
+            return product && product.category === category;
+        });
+
+        tableBody.appendChild(createRow([
+            createCell(category),
+            createCell(categoryProducts.length, "num"),
+            createCell(categoryProducts.reduce((acc, p) => acc + p.stock, 0), "num"),
+            createCell(formatMoney(getInventoryValue(categoryProducts)), "num"),
+            createCell(formatMoney(getRevenue(categorySales)), "num")
+        ]));
+    });
+
+    // Totales: coinciden con las tarjetas del Dashboard
+    tableFoot.replaceChildren(createRow([
+        createCell("Total"),
+        createCell(products.length, "num"),
+        createCell(products.reduce((acc, p) => acc + p.stock, 0), "num"),
+        createCell(formatMoney(getInventoryValue()), "num"),
+        createCell(formatMoney(getRevenue(recentSales)), "num")
+    ]));
 }
 
 
@@ -299,9 +420,7 @@ function saveProduct(event) {
         price: Math.round(price * 100) / 100
     });
 
-    loadCategories();
-    renderProducts();
-    updateCards();
+    renderAll();
     closeModal();
     showToast(`"${name}" was added to the inventory.`);
 }
@@ -319,13 +438,12 @@ function fitText(doc, text, maxWidth) {
     return cut + "...";
 }
 
-function exportToPDF() {
+function exportToPDF(list) {
     if (!window.jspdf) {
         showToast("The PDF library could not be loaded. Check your connection.");
         return;
     }
 
-    const list = getVisibleProducts();
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -383,14 +501,14 @@ function exportToPDF() {
 
 // ---------- EXPORTAR A EXCEL ----------
 
-function exportToExcel() {
+function exportToExcel(list) {
     if (!window.XLSX) {
         showToast("The Excel library could not be loaded. Check your connection.");
         return;
     }
 
     // Convertir los productos visibles a un formato plano para Excel
-    const data = getVisibleProducts().map(p => ({
+    const data = list.map(p => ({
         Name: p.name,
         Category: p.category,
         Stock: p.stock,
@@ -415,17 +533,92 @@ function exportToExcel() {
 }
 
 
+// ---------- SETTINGS ----------
+
+function updateThreshold(event) {
+    const value = Number(event.target.value);
+    // Ignora valores inválidos mientras se escribe
+    if (event.target.value === "" || !Number.isInteger(value) || value < 0) return;
+    lowStockThreshold = value;
+    renderAll();
+}
+
+function resetDemoData() {
+    products.splice(0, products.length, ...initialProducts.map(p => ({ ...p })));
+    lowStockThreshold = DEFAULT_LOW_STOCK_THRESHOLD;
+    document.getElementById("search-input").value = "";
+    document.getElementById("category-filter").value = "all";
+    renderAll();
+    showToast("Demo data has been reset.");
+}
+
+
+// ---------- NAVEGACIÓN (secciones por #hash) ----------
+
+const VIEW_TITLES = {
+    dashboard: "Dashboard",
+    products: "Products",
+    sales: "Sales",
+    reports: "Reports",
+    settings: "Settings"
+};
+
+function showView({ moveFocus = false } = {}) {
+    const requested = location.hash.slice(1);
+    const view = requested in VIEW_TITLES ? requested : "dashboard";
+
+    document.querySelectorAll(".view").forEach(section => {
+        section.hidden = section.dataset.view !== view;
+    });
+
+    document.querySelectorAll(".menu a").forEach(link => {
+        const isActive = link.getAttribute("href") === "#" + view;
+        link.classList.toggle("active", isActive);
+        if (isActive) {
+            link.setAttribute("aria-current", "page");
+        } else {
+            link.removeAttribute("aria-current");
+        }
+    });
+
+    document.title = `${VIEW_TITLES[view]} · Inventory & Sales Dashboard`;
+
+    // Al cambiar de sección: vuelve arriba y lleva el foco al título (lectores de pantalla)
+    if (moveFocus) {
+        window.scrollTo(0, 0);
+        document.querySelector(`.view[data-view="${view}"] h1`).focus();
+    }
+}
+
+
 // ---------- Inicializar Dashboard ----------
 
-document.addEventListener("DOMContentLoaded", () => {
+// Redibuja todo lo que depende de los datos
+function renderAll() {
+    document.getElementById("threshold-input").value = lowStockThreshold;
     loadCategories();
     renderProducts();
     updateCards();
+    renderDashboardTables();
+    renderSales();
+    renderReports();
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    renderAll();
+    showView();
+    window.addEventListener("hashchange", () => showView({ moveFocus: true }));
 
     document.getElementById("search-input").addEventListener("input", renderProducts);
     document.getElementById("category-filter").addEventListener("change", renderProducts);
-    document.getElementById("export-pdf-btn").addEventListener("click", exportToPDF);
-    document.getElementById("export-excel-btn").addEventListener("click", exportToExcel);
+    document.getElementById("export-pdf-btn").addEventListener("click", () => exportToPDF(getVisibleProducts()));
+    document.getElementById("export-excel-btn").addEventListener("click", () => exportToExcel(getVisibleProducts()));
+    document.getElementById("report-pdf-btn").addEventListener("click", () => exportToPDF(products));
+    document.getElementById("report-excel-btn").addEventListener("click", () => exportToExcel(products));
+
+    document.getElementById("threshold-input").addEventListener("input", updateThreshold);
+    document.getElementById("reset-data-btn").addEventListener("click", resetDemoData);
 
     document.getElementById("add-product-btn").addEventListener("click", openModal);
     document.getElementById("close-modal").addEventListener("click", closeModal);
