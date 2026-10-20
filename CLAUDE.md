@@ -24,6 +24,12 @@ CLAUDE.md
 
 - Las rutas a recursos propios son **relativas** (`styles.css`, `app.js`); no deben depender de estar dentro del portafolio.
 
+## Cache busting
+
+- Cloudflare sirve `styles.css` y `app.js` con `cache-control: max-age=14400` (4 h), pero `index.html` no se cachea. Si cambia el HTML y no la URL del CSS/JS, el navegador combina HTML nuevo con CSS/JS viejo y la página se rompe.
+- En `index.html` se cargan con versión: `styles.css?v=N` y `app.js?v=N`.
+- **Cada commit que modifique `styles.css` o `app.js` debe subir `N` en `index.html`** (el mismo número para los dos, en el mismo commit).
+
 ## Forma de trabajo
 
 - Soy estudiante de Ingeniería de Software y quiero aprender: **explica las decisiones importantes antes de implementarlas** (qué opciones hay, cuál recomiendas y por qué).
