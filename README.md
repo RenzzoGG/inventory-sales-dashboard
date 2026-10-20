@@ -1,19 +1,21 @@
 # Inventory & Sales Dashboard
 
-A responsive inventory and sales dashboard built with plain HTML, CSS and JavaScript. It shows a product list with summary cards, lets you search, filter and add products, and exports the current list to PDF or Excel.
+A responsive inventory and sales dashboard built with plain HTML, CSS and JavaScript. It tracks products and sample sales, shows key metrics, lets you search, filter and add products, and exports reports to PDF or Excel.
 
 **Live demo:** [inventory.renzzogg.com](https://inventory.renzzogg.com)
 
 ## Features
 
-- **Summary cards:** total products, total sales, low-stock items and monthly revenue.
-- **Search:** filter the product table by name as you type.
-- **Category filter:** show only the products of one category.
-- **Add products:** add new items through a modal form; the table and cards update instantly.
-- **Export to PDF:** download the product list as `inventory_report.pdf` (jsPDF).
-- **Export to Excel:** download the product list as `inventory_report.xlsx` (SheetJS).
+- **Dashboard:** product count, revenue for the last 30 days, low-stock items and total inventory value, plus low-stock and recent-sales lists. Every number is calculated from the sample data, so the cards always agree with each other.
+- **Products:** search by name or category combined with a category filter, low-stock badges, and an accessible "Add product" form with validation (keyboard friendly, closes with Escape).
+- **Sales:** order history with date, quantity, unit price and total.
+- **Reports:** inventory and revenue summarized by category, with totals that match the dashboard.
+- **Settings:** change the low-stock threshold or reset the demo data.
+- **Export to PDF and Excel:** the Products page exports the filtered list; Reports exports the full inventory. PDFs paginate automatically and Excel keeps prices as numbers with currency formatting.
+- **US formatting:** prices and dates use `Intl.NumberFormat` / `Intl.DateTimeFormat` (`$1,149.00`, `Oct 19, 2026`).
+- **Responsive:** the sidebar becomes a top navigation bar on tablets and phones, and wide tables scroll horizontally.
 
-The data is sample data kept in memory, so changes reset when the page reloads.
+Navigation uses URL hashes (`#products`, `#sales`, …), so the browser's back button works without any server configuration. The data is sample data kept in memory, so changes reset when the page reloads. Sample sales dates are relative to today, so the demo always shows recent activity.
 
 ## Tech stack
 
