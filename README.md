@@ -6,14 +6,15 @@ A responsive inventory and sales dashboard built with plain HTML, CSS and JavaSc
 
 ## Features
 
-- **Dashboard:** product count, revenue for the last 30 days, low-stock items and total inventory value, plus low-stock and recent-sales lists. Every number is calculated from the sample data, so the cards always agree with each other.
+- **Dashboard:** product count, revenue for the last 30 days, low-stock items and total inventory value, a daily revenue chart, and low-stock and recent-sales lists. Every number is calculated from the sample data, so the cards always agree with each other.
 - **Products:** search by name or category combined with a category filter, low-stock badges, and an accessible "Add product" form with validation (keyboard friendly, closes with Escape).
 - **Sales:** order history with date, quantity, unit price and total.
 - **Reports:** inventory and revenue summarized by category, with totals that match the dashboard.
 - **Settings:** change the low-stock threshold or reset the demo data.
 - **Export to PDF and Excel:** the Products page exports the filtered list; Reports exports the full inventory. PDFs paginate automatically and Excel keeps prices as numbers with currency formatting.
 - **US formatting:** prices and dates use `Intl.NumberFormat` / `Intl.DateTimeFormat` (`$1,149.00`, `Oct 19, 2026`).
-- **Responsive:** the sidebar becomes a top navigation bar on tablets and phones, and wide tables scroll horizontally.
+- **Daily revenue chart:** an SVG column chart drawn with plain JavaScript (no chart library). It redraws at any width, shows a tooltip on hover, tap or arrow keys, and includes a text summary for screen readers and a "View as table" option.
+- **Responsive:** the sidebar becomes a top navigation bar on tablets and phones; on phones the product table moves the category under the name so prices stay visible without horizontal scrolling.
 
 Navigation uses URL hashes (`#products`, `#sales`, …), so the browser's back button works without any server configuration. The data is sample data kept in memory, so changes reset when the page reloads. Sample sales dates are relative to today, so the demo always shows recent activity.
 

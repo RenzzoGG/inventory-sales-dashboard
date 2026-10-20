@@ -28,7 +28,9 @@ CLAUDE.md
 
 - Cloudflare sirve `styles.css` y `app.js` con `cache-control: max-age=14400` (4 h), pero `index.html` no se cachea. Si cambia el HTML y no la URL del CSS/JS, el navegador combina HTML nuevo con CSS/JS viejo y la página se rompe.
 - En `index.html` se cargan con versión: `styles.css?v=N` y `app.js?v=N`.
-- **Cada commit que modifique `styles.css` o `app.js` debe subir `N` en `index.html`** (el mismo número para los dos, en el mismo commit).
+- **Si cambias `styles.css` o `app.js`, sube `N` en `index.html` respecto a la versión publicada** (la de `origin/main`), en el primer commit que los toque. El mismo número para los dos archivos.
+- Varios commits locales antes de un mismo push comparten ese `N`: no hace falta subirlo en cada commit, porque las versiones intermedias nunca se publican.
+- Para comprobarlo antes de avisar que está listo: `git diff origin/main -- index.html | grep '?v='`.
 
 ## Forma de trabajo
 
