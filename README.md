@@ -1,5 +1,12 @@
 # Inventory & Sales Dashboard
 
+![Desktop view of the Dashboard: cards for total products, 30-day revenue, low-stock items and inventory value, a daily revenue column chart, and the Low Stock and Recent Sales lists](docs/screenshots/desktop-dashboard.webp)
+
+<p>
+  <img src="docs/screenshots/desktop-reports.webp" width="68%" alt="Desktop view of the Reports page: inventory and 30-day revenue summarized by category with a totals row, plus Export to PDF and Export to Excel buttons">
+  <img src="docs/screenshots/mobile-sales.webp" width="28%" alt="Mobile view of the Sales page: the sidebar becomes a top navigation bar and the order history shows date, product and total without horizontal scrolling">
+</p>
+
 A responsive inventory and sales dashboard built with plain HTML, CSS and JavaScript. It tracks products and sample sales, shows key metrics, lets you search, filter and add products, and exports reports to PDF or Excel.
 
 **Live demo:** [inventory.renzzogg.com](https://inventory.renzzogg.com)

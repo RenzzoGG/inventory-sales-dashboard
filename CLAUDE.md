@@ -17,6 +17,10 @@ index.html    # Página del dashboard
 styles.css    # Estilos
 app.js        # Lógica: datos de ejemplo, búsqueda, filtro, modal, exportar PDF/Excel
 favicon.svg   # Ícono de la pestaña (caja de inventario)
+og-image.png  # Imagen Open Graph 1200×630 (vista previa al compartir el enlace)
+docs/
+├── og-image.html  # Plantilla de og-image.png (se publica, pero lleva noindex)
+└── screenshots/   # Capturas WebP que usa el README
 README.md
 CLAUDE.md
 .gitignore
@@ -31,6 +35,12 @@ CLAUDE.md
 - **Si cambias `styles.css` o `app.js`, sube `N` en `index.html` respecto a la versión publicada** (la de `origin/main`), en el primer commit que los toque. El mismo número para los dos archivos.
 - Varios commits locales antes de un mismo push comparten ese `N`: no hace falta subirlo en cada commit, porque las versiones intermedias nunca se publican.
 - Para comprobarlo antes de avisar que está listo: `git diff origin/main -- index.html | grep '?v='`.
+
+## Imagen OG y capturas
+
+- `og-image.png` se genera desde `docs/og-image.html` con Chrome headless (el comando está en el comentario de la plantilla). Si cambia el nombre, la frase o los colores del proyecto, se regenera.
+- Desde WSL se usa el Chrome de Windows (`/mnt/c/Program Files/Google/Chrome/Application/chrome.exe`, con la ruta de salida pasada por `wslpath -w`): el `chrome-headless-shell` de `~/.cache/puppeteer` no arranca porque le falta `libnss3`.
+- En headless, Chrome para Windows no baja de unos 492 px de ancho de layout, aunque `--window-size` diga 390. Para capturas de móvil, carga la página dentro de un `<iframe>` de 390×844 en una página auxiliar temporal (que no se commitea).
 
 ## Forma de trabajo
 
