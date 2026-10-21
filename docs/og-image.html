@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<!--
+  Plantilla de la imagen Open Graph (1200×630) de inventory.renzzogg.com.
+  Se captura con Chrome headless y el PNG va a og-image.png (raíz del repo).
+  Regenerarla (con `python3 -m http.server 8000` corriendo en la raíz; desde WSL
+  se usa el Chrome de Windows, y la salida va con ruta de Windows):
+    "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new \
+      --hide-scrollbars --window-size=1200,630 --virtual-time-budget=5000 \
+      --screenshot="$(wslpath -w "$PWD/og-image.png")" \
+      http://localhost:8000/docs/og-image.html
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex">
+  <title>OG image — Inventory & Sales Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    /* Mismos colores que styles.css */
+    :root {
+      --bg-main: #0d0f14;
+      --bg-card: #161923;
+      --border-color: #222632;
+      --text-primary: #ffffff;
+      --text-secondary: #a7afc9;
+      --accent: #4f7cff;
+      --warning: #ffb547;
+      --font: "Inter", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; }
+
+    html, body {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+    }
+
+    body {
+      position: relative;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font);
+      padding: 72px 80px;
+      display: flex;
+      align-items: center;
+      gap: 56px;
+    }
+
+    /* Brillo azul en la esquina */
+    body::before {
+      content: "";
+      position: absolute;
+      top: -280px;
+      right: -220px;
+      width: 760px;
+      height: 760px;
+      background: radial-gradient(circle, rgba(79, 124, 255, 0.20), transparent 65%);
+    }
+
+    /* Barra de acento a la izquierda */
+    body::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 10px;
+      background: var(--accent);
+    }
+
+    .text {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .brand span { color: var(--accent); }
+
+    .title {
+      margin-top: 40px;
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .tagline {
+      margin-top: 24px;
+      font-size: 28px;
+      line-height: 1.4;
+      color: var(--text-secondary);
+    }
+
+    .url {
+      margin-top: 48px;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* Vista previa decorativa del dashboard */
+    .preview {
+      position: relative;
+      width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .card,
+    .chart {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    .card { padding: 18px 20px; }
+
+    .card-label {
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    .card-value {
+      margin-top: 6px;
+      font-size: 30px;
+      font-weight: 700;
+    }
+
+    .card-value.warning { color: var(--warning); }
+
+    .chart { padding: 18px 20px 14px; }
+
+    .chart-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .chart svg { display: block; }
+  </style>
+</head>
+<body>
+  <div class="text">
+    <div class="brand">
+      <svg width="44" height="44" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#161923"/>
+        <path d="M16 5 27 10.5v11L16 27 5 21.5v-11Z" fill="#4f7cff"/>
+        <path d="M5 10.5 16 16l11-5.5M16 16v11" fill="none" stroke="#161923" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <div>Inventory<span>Pro</span></div>
+    </div>
+    <h1 class="title">Inventory &amp; Sales Dashboard</h1>
+    <p class="tagline">Track stock, sales and revenue —<br>export reports to PDF &amp; Excel.</p>
+    <p class="url">inventory.renzzogg.com</p>
+  </div>
+
+  <div class="preview" aria-hidden="true">
+    <div class="cards">
+      <div class="card">
+        <p class="card-label">Revenue (30 days)</p>
+        <p class="card-value">$48,920</p>
+      </div>
+      <div class="card">
+        <p class="card-label">Low Stock Items</p>
+        <p class="card-value warning">4</p>
+      </div>
+    </div>
+    <div class="chart">
+      <p class="chart-title">Daily Revenue</p>
+      <svg width="398" height="190" viewBox="0 0 398 190">
+        <g stroke="#222632" stroke-width="1">
+          <line x1="0" y1="10" x2="398" y2="10"/>
+          <line x1="0" y1="70" x2="398" y2="70"/>
+          <line x1="0" y1="130" x2="398" y2="130"/>
+          <line x1="0" y1="189" x2="398" y2="189"/>
+        </g>
+        <g fill="#4f7cff">
+          <rect x="4"   y="120" width="20" height="69"  rx="3"/>
+          <rect x="31"  y="90"  width="20" height="99"  rx="3"/>
+          <rect x="58"  y="140" width="20" height="49"  rx="3"/>
+          <rect x="85"  y="70"  width="20" height="119" rx="3"/>
+          <rect x="112" y="105" width="20" height="84"  rx="3"/>
+          <rect x="139" y="60"  width="20" height="129" rx="3"/>
+          <rect x="166" y="130" width="20" height="59"  rx="3"/>
+          <rect x="193" y="80"  width="20" height="109" rx="3"/>
+          <rect x="220" y="40"  width="20" height="149" rx="3"/>
+          <rect x="247" y="100" width="20" height="89"  rx="3"/>
+          <rect x="274" y="65"  width="20" height="124" rx="3"/>
+          <rect x="301" y="115" width="20" height="74"  rx="3"/>
+          <rect x="328" y="30"  width="20" height="159" rx="3"/>
+          <rect x="355" y="85"  width="20" height="104" rx="3"/>
+        </g>
+        <rect x="328" y="30" width="20" height="159" rx="3" fill="#7b9dff"/>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
