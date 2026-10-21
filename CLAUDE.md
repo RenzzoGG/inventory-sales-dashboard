@@ -39,7 +39,8 @@ CLAUDE.md
 ## Imagen OG y capturas
 
 - `og-image.png` se genera desde `docs/og-image.html` con Chrome headless (el comando está en el comentario de la plantilla). Si cambia el nombre, la frase o los colores del proyecto, se regenera.
-- Desde WSL se usa el Chrome de Windows (`/mnt/c/Program Files/Google/Chrome/Application/chrome.exe`, con la ruta de salida pasada por `wslpath -w`): el `chrome-headless-shell` de `~/.cache/puppeteer` no arranca porque le falta `libnss3`.
+- Desde WSL se usa el Chrome de Windows (`/mnt/c/Program Files/Google/Chrome/Application/chrome.exe`, con la ruta de salida pasada por `wslpath -w`): el `chrome-headless-shell` de `~/.cache/puppeteer` no arranca porque le falta `libnss3`. Si al sobrescribir `og-image.png` sale "el archivo está siendo utilizado por otro proceso", captura a un archivo temporal y cópialo encima con `cp`.
+- Las cifras y las barras de la plantilla salen de los datos de `app.js` (Revenue 30 days, Low Stock Items y `getDailyRevenue(30)`). Si cambian las ventas o los productos de ejemplo, actualiza la plantilla y regenera la imagen.
 - En headless, Chrome para Windows no baja de unos 492 px de ancho de layout, aunque `--window-size` diga 390. Para capturas de móvil, carga la página dentro de un `<iframe>` de 390×844 en una página auxiliar temporal (que no se commitea).
 
 ## Forma de trabajo

@@ -177,39 +177,47 @@
     <div class="cards">
       <div class="card">
         <p class="card-label">Revenue (30 days)</p>
-        <p class="card-value">$48,920</p>
+        <p class="card-value">$8,642</p>
       </div>
       <div class="card">
         <p class="card-label">Low Stock Items</p>
-        <p class="card-value warning">4</p>
+        <p class="card-value warning">3</p>
       </div>
     </div>
     <div class="chart">
       <p class="chart-title">Daily Revenue</p>
+      <!--
+        Ingresos diarios reales de los últimos 30 días (getDailyRevenue(30) de app.js).
+        Las ventas de ejemplo se definen como "hace N días", así que la forma no cambia.
+        Escala: $0–$2,400 (igual que el eje de la gráfica real), 30 columnas de 398/30 px;
+        los días sin ventas no llevan barra.
+      -->
       <svg width="398" height="190" viewBox="0 0 398 190">
         <g stroke="#222632" stroke-width="1">
-          <line x1="0" y1="10" x2="398" y2="10"/>
-          <line x1="0" y1="70" x2="398" y2="70"/>
-          <line x1="0" y1="130" x2="398" y2="130"/>
-          <line x1="0" y1="189" x2="398" y2="189"/>
+          <line x1="0" y1="8.5" x2="398" y2="8.5"/>
+          <line x1="0" y1="53.5" x2="398" y2="53.5"/>
+          <line x1="0" y1="98.5" x2="398" y2="98.5"/>
+          <line x1="0" y1="143.5" x2="398" y2="143.5"/>
+          <line x1="0" y1="188.5" x2="398" y2="188.5"/>
         </g>
         <g fill="#4f7cff">
-          <rect x="4"   y="120" width="20" height="69"  rx="3"/>
-          <rect x="31"  y="90"  width="20" height="99"  rx="3"/>
-          <rect x="58"  y="140" width="20" height="49"  rx="3"/>
-          <rect x="85"  y="70"  width="20" height="119" rx="3"/>
-          <rect x="112" y="105" width="20" height="84"  rx="3"/>
-          <rect x="139" y="60"  width="20" height="129" rx="3"/>
-          <rect x="166" y="130" width="20" height="59"  rx="3"/>
-          <rect x="193" y="80"  width="20" height="109" rx="3"/>
-          <rect x="220" y="40"  width="20" height="149" rx="3"/>
-          <rect x="247" y="100" width="20" height="89"  rx="3"/>
-          <rect x="274" y="65"  width="20" height="124" rx="3"/>
-          <rect x="301" y="115" width="20" height="74"  rx="3"/>
-          <rect x="328" y="30"  width="20" height="159" rx="3"/>
-          <rect x="355" y="85"  width="20" height="104" rx="3"/>
+          <rect x="15.4" y="16" width="9" height="172" rx="2"/>
+          <rect x="55.2" y="128" width="9" height="60" rx="2"/>
+          <rect x="95" y="181" width="9" height="7" rx="2"/>
+          <rect x="134.8" y="162" width="9" height="26" rx="2"/>
+          <rect x="161.3" y="83" width="9" height="105" rx="2"/>
+          <rect x="187.9" y="151" width="9" height="37" rx="2"/>
+          <rect x="214.4" y="178" width="9" height="10" rx="2"/>
+          <rect x="240.9" y="178" width="9" height="10" rx="2"/>
+          <rect x="267.5" y="161" width="9" height="27" rx="2"/>
+          <rect x="280.7" y="182" width="9" height="6" rx="2"/>
+          <rect x="307.3" y="102" width="9" height="86" rx="2"/>
+          <rect x="333.8" y="158" width="9" height="30" rx="2"/>
+          <rect x="347.1" y="184" width="9" height="4" rx="2"/>
+          <rect x="360.3" y="183" width="9" height="5" rx="2"/>
+          <rect x="373.6" y="136" width="9" height="52" rx="2"/>
+          <rect x="386.9" y="179" width="9" height="9" rx="2"/>
         </g>
-        <rect x="328" y="30" width="20" height="159" rx="3" fill="#7b9dff"/>
       </svg>
     </div>
   </div>
